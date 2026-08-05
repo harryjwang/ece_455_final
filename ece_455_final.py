@@ -69,6 +69,17 @@ def parse_tasks(lines):
 
     return tasks
 
+# Function that creates a job based on the release time and abs deadline of the task (all release times are 0 initially)
+def create_job (task, release_time):
+    return {
+        "task_num": task["task_num"],
+        "exec_time": task["exec_time"],
+        "release_time": release_time,
+        "abs_deadline": release_time + task["deadline"],
+        "priority": task["priority"]
+    }
+
+
 def main():
     # restrict command line args to only have exactly 2 args
     if len(sys.argv) != 2:
@@ -87,10 +98,19 @@ def main():
     assign_priorities(parsed_tasks)
     hyperperiod = calculate_hyperperiod(parsed_tasks)
 
-    # print all parsed tasks obtianed from the workload file as well as calculated hyperperiod
-    print("Parsed tasks:")
+    # initialize jobs to indicate where they're release and where their deadline is
+    initial_jobs = []
+
     for task in parsed_tasks:
-        print(task)
+        initial_jobs.append(create_job(task, 0))
+
+    # print all initial jobs that get released as well as the calculated hyperperiod
+    print("Initial Jobs: ")
+    for job in initial_jobs:
+            print(job)
+    # print("Parsed tasks:")
+    # for task in parsed_tasks:
+    #     print(task)
     print("Hyperperiod:", hyperperiod)
 
 if __name__ == "__main__":

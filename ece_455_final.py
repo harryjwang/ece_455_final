@@ -1,4 +1,10 @@
 import sys
+from decimal import Decimal
+
+# Function to convert float values to int values with 0.001 accuracy -> ie. 1 -> 1000, 1.001 -> 1001, 1.002 -> 1002, etc.
+def convert_to_time_units(value): 
+    # convert value (0.001 accuracy) to int values so that we don't experience any rounding related issues with float values
+    return int(Decimal(value) * 1000)
 
 # Function for reading the workload files (.txt files)
 def read_workload_file(filename):
@@ -34,9 +40,9 @@ def parse_tasks(lines):
         # for each task, create a dict entry with execution time, 
         task = {
             "task_num": task_num,
-            "exec_time": exec_time,
-            "period": period,
-            "deadline": deadline
+            "exec_time": convert_to_time_units(exec_time),
+            "period": convert_to_time_units(period),
+            "deadline": convert_to_time_units(deadline)
         }
 
         # for each new task, append it to the tasks dictionary list

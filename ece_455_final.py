@@ -1,4 +1,5 @@
 import sys
+import math
 from decimal import Decimal
 
 # Function to convert float values to int values with 0.001 accuracy -> ie. 1 -> 1000, 1.001 -> 1001, 1.002 -> 1002, etc.
@@ -20,6 +21,24 @@ def read_workload_file(filename):
     except FileNotFoundError:
         print("File could not be found")
         return None
+
+
+# assign priorities (highest priority = 0, lowest priority = n-1) to each task based on the RM scheduling algorithm
+def assign_priorities(tasks):
+    # sort the tasks based on period -> RM scheduling means shorter period = higher priority
+    # in my simulator, if the periods (priorities) are the same, then lower task number = higher priority
+    tasks_sorted_by_priority = sorted(tasks, key=lambda task: (task["period"], task["task_num"]))
+
+    # for each priority, task in the sorted tasks, assign the priority to the task based on its index in the sorted list
+    for priority, task in enumerate(tasks_sorted_by_priority):
+        task["priority"] = priority
+
+# based on the periods of the tasks in the workload, calculate the hyperperiod with LCM
+def calculate_hyperperiod(tasks):
+    # return the LCM of all periods in the workload as the hyperperiod
+    periods = [task["period"] for task in tasks]
+    return math.lcm(*periods)
+
 
 # This function takes each line in the workload file and splits the values based on the comma separator locations and stores it into a dictionary list
 def parse_tasks(lines):
@@ -63,14 +82,16 @@ def main():
     if lines is None:
         return
 
-    # parse the tasks from the workload file's lines 
+    # parse the tasks from the workload file's lines, assign priorities based on RM, and calculate hyperperiod with LCM
     parsed_tasks = parse_tasks(lines)
+    assign_priorities(parsed_tasks)
+    hyperperiod = calculate_hyperperiod(parsed_tasks)
 
-    # print all parsed tasks obtianed from the workload file
+    # print all parsed tasks obtianed from the workload file as well as calculated hyperperiod
     print("Parsed tasks:")
     for task in parsed_tasks:
         print(task)
-
+    print("Hyperperiod:", hyperperiod)
 
 if __name__ == "__main__":
     main()

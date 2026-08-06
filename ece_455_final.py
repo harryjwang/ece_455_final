@@ -80,6 +80,17 @@ def create_job (task, release_time):
     }
 
 
+# function that releases jobs based on the next release time of the task and the current time of the simulation
+def release_jobs(tasks, next_release_time, current_time, ready_jobs):
+    for task in tasks:
+        task_num = task["task_num"]
+
+        if next_release_time[task_num] <= current_time:
+            release_time = next_release_time[task_num]
+            ready_jobs.append(create_job(task, release_time))
+            next_release_time[task_num] += task["period"]
+
+
 def main():
     # restrict command line args to only have exactly 2 args
     if len(sys.argv) != 2:
@@ -98,16 +109,30 @@ def main():
     assign_priorities(parsed_tasks)
     hyperperiod = calculate_hyperperiod(parsed_tasks)
 
-    # initialize jobs to indicate where they're release and where their deadline is
-    initial_jobs = []
+    next_release_time = [0] * len(parsed_tasks)  # initialize next release time for each task to 0
+    ready_jobs = []  # initialize ready jobs list to store jobs that are ready to be executed
 
-    for task in parsed_tasks:
-        initial_jobs.append(create_job(task, 0))
+    current_time = 0
+
+    # as long as the current time doesn't exceed the hyperperiod, release jobs based on the next release time
+    # of the tasks and the current time of the simulation
+    while current_time < hyperperiod:
+        release_jobs(parsed_tasks, next_release_time, current_time, ready_jobs)
+        current_time += min(next_release_time)
+
+    for jobs in ready_jobs:
+        print(jobs)
+
+    # initialize jobs to indicate where they're release and where their deadline is
+    # initial_jobs = []
+
+    # for task in parsed_tasks:
+    #     initial_jobs.append(create_job(task, 0))
 
     # print all initial jobs that get released as well as the calculated hyperperiod
-    print("Initial Jobs: ")
-    for job in initial_jobs:
-            print(job)
+    # print("Initial Jobs: ")
+    # for job in initial_jobs:
+    #         print(job)
     # print("Parsed tasks:")
     # for task in parsed_tasks:
     #     print(task)

@@ -90,6 +90,15 @@ def release_jobs(tasks, next_release_time, current_time, ready_jobs):
             ready_jobs.append(create_job(task, release_time))
             next_release_time[task_num] += task["period"]
 
+# select the next job to execute according to priority
+def select_next_job(ready_jobs):
+    # empty queue of ready jobs
+    if not ready_jobs:
+        return None
+
+    # return the job in the ready queue with the higheset priority (smallest value)
+    return min(ready_jobs, key=lambda job: (job["priority"], job["release_time"]))
+
 
 def main():
     # restrict command line args to only have exactly 2 args
@@ -120,8 +129,11 @@ def main():
         release_jobs(parsed_tasks, next_release_time, current_time, ready_jobs)
         current_time += min(next_release_time)
 
-    for jobs in ready_jobs:
-        print(jobs)
+    selected_job = select_next_job(ready_jobs)
+    print("Selected Job:", selected_job)
+
+    # for jobs in ready_jobs:
+    #     print(jobs)
 
     # initialize jobs to indicate where they're release and where their deadline is
     # initial_jobs = []

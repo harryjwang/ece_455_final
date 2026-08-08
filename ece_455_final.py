@@ -102,18 +102,30 @@ def select_next_job(ready_jobs):
     return min(ready_jobs, key=lambda job: (job["priority"], job["release_time"]))
 
 # calculates the time of the next event base on release time of next job, current time, and selected job's remaining time
-def calc_next_event_time(next_release_time, current_time, selected_job, hyperperiod):
-    next_release_time = min(next_release_time)
+def calc_next_event_time(next_release_time, current_time, selected_job, hyperperiod, ready_jobs):
+    earliest_release_time = min(next_release_time)
+
+    earliest_deadline = min((job["abs_deadline"] for job in ready_jobs), default = hyperperiod)
 
     # if no selected jobs, return the smallest next release time or hyperperiod
     if selected_job is None:
-        return min(next_release_time, hyperperiod)
+        return min(earliest_release_time, hyperperiod, earliest_deadline)
 
     # updated completion time to the current time with the reamining time of the selected job added to it
     completion_time = current_time + selected_job["remaining_time"]
 
     # return the smallest value our of the next release time, completion time, or hyperperiod
-    return min(next_release_time, completion_time, hyperperiod)
+    return min(earliest_release_time, completion_time, hyperperiod, earliest_deadline)
+
+
+# function to detect if a deadline is ever missed (failed)
+def detect_deadline_miss(ready_jobs, current_time):
+    # for each ready job, check if the deadline was missed or not. Return the job if the deadline was missed
+    for job in ready_jobs:
+        if (job["abs_deadline"] >= current_time and job["remaining_time"] > 0):
+            return job
+
+    return None
 
 
 def main():
@@ -138,6 +150,7 @@ def main():
     ready_jobs = []  # initialize ready jobs list to store jobs that are ready to be executed
 
     current_time = 0
+    feasible = True
 
     # as long as the current time doesn't exceed the hyperperiod, release jobs based on the next release time
     # of the tasks and the current time of the simulation
@@ -156,6 +169,16 @@ def main():
             ready_jobs
         )
 
+        missed_job = detect_deadline_miss(ready_jobs, current_time)
+
+        if missed_job is not None:
+            feasible = False
+
+            print(f"Missed deadline at {current_time/1000:.3f}")
+            print(f"The job(s) that missed its deadline was {missed_job["task_num"]}")
+
+            break
+
         # choose the next job we need to execute based on the ready jobs and their priorities
         selected_job = select_next_job(ready_jobs)
 
@@ -165,6 +188,7 @@ def main():
             current_time,
             selected_job,
             hyperperiod,
+            ready_jobs
         )
 
         # Shows what times the tasks are running, when they were release, when they were completed, and when the CPU is idle
@@ -192,6 +216,17 @@ def main():
         # set the current time to the next event time for the next iteration of the loop
         current_time = next_event_time
 
+
+    if feasible:
+        missed_job = detect_deadline_miss(ready_jobs, current_time)
+
+        if missed_job is not None:
+            feasible = None
+            print("Post loop check failed")
+
+        if missed_job is None:
+            print("Post loop check passed as expected")
+
     # selected_job = select_next_job(ready_jobs)
     # print("Selected Job:", selected_job)
 
@@ -212,6 +247,7 @@ def main():
     # for task in parsed_tasks:
     #     print(task)
     print("Hyperperiod:", hyperperiod)
+    print("Feasible?: ", feasible)
 
 if __name__ == "__main__":
     main()

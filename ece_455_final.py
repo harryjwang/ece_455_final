@@ -52,9 +52,6 @@ def parse_tasks(lines):
 
         # split the line vals into execution time, period, and deadline based on the comma separator locations
         exec_time, period, deadline = line_vals.split(",")
-        exec_time = float(exec_time)
-        period = float(period)
-        deadline = float(deadline)
 
         # for each task, create a dict entry with execution time, 
         task = {
@@ -73,10 +70,10 @@ def parse_tasks(lines):
 def create_job (task, release_time):
     return {
         "task_num": task["task_num"],
-        "exec_time": task["exec_time"],
+        "remaining_time": task["exec_time"],
         "release_time": release_time,
         "abs_deadline": release_time + task["deadline"],
-        "priority": task["priority"]
+        "priority": task["priority"],
     }
 
 
@@ -88,6 +85,11 @@ def release_jobs(tasks, next_release_time, current_time, ready_jobs):
         if next_release_time[task_num] <= current_time:
             release_time = next_release_time[task_num]
             ready_jobs.append(create_job(task, release_time))
+
+            # Indicates when the tasks are released based on current simulation time and the next release time of the task
+            print(f"Time {release_time / 1000:.3f}: "
+                    f"T{task_num} released")
+            
             next_release_time[task_num] += task["period"]
 
 # select the next job to execute according to priority
@@ -98,6 +100,20 @@ def select_next_job(ready_jobs):
 
     # return the job in the ready queue with the higheset priority (smallest value)
     return min(ready_jobs, key=lambda job: (job["priority"], job["release_time"]))
+
+# calculates the time of the next event base on release time of next job, current time, and selected job's remaining time
+def calc_next_event_time(next_release_time, current_time, selected_job, hyperperiod):
+    next_release_time = min(next_release_time)
+
+    # if no selected jobs, return the smallest next release time or hyperperiod
+    if selected_job is None:
+        return min(next_release_time, hyperperiod)
+
+    # updated completion time to the current time with the reamining time of the selected job added to it
+    completion_time = current_time + selected_job["remaining_time"]
+
+    # return the smallest value our of the next release time, completion time, or hyperperiod
+    return min(next_release_time, completion_time, hyperperiod)
 
 
 def main():
@@ -125,12 +141,59 @@ def main():
 
     # as long as the current time doesn't exceed the hyperperiod, release jobs based on the next release time
     # of the tasks and the current time of the simulation
-    while current_time < hyperperiod:
-        release_jobs(parsed_tasks, next_release_time, current_time, ready_jobs)
-        current_time += min(next_release_time)
+    # while current_time < hyperperiod:
+    #     release_jobs(parsed_tasks, next_release_time, current_time, ready_jobs)
+    #     current_time += min(next_release_time)
 
-    selected_job = select_next_job(ready_jobs)
-    print("Selected Job:", selected_job)
+    # change loop to actually execute jobs
+    while current_time < hyperperiod:
+
+        # constantly release jobs
+        release_jobs(
+            parsed_tasks,
+            next_release_time,
+            current_time,
+            ready_jobs
+        )
+
+        # choose the next job we need to execute based on the ready jobs and their priorities
+        selected_job = select_next_job(ready_jobs)
+
+        # calculate the time of the next event
+        next_event_time = calc_next_event_time(
+            next_release_time,
+            current_time,
+            selected_job,
+            hyperperiod,
+        )
+
+        # Shows what times the tasks are running, when they were release, when they were completed, and when the CPU is idle
+        if selected_job is None:
+            print(
+                f"Time {current_time / 1000:.3f} to "
+                f"{next_event_time / 1000:.3f}: CPU idle"
+            )
+        else:
+            print(
+                f"Time {current_time / 1000:.3f} to "
+                f"{next_event_time / 1000:.3f}: "
+                f"Running T{selected_job['task_num']}"
+            )
+
+        # if a job is selected, then calcaulted the elapsed time and subtract it from the selected job's remaining time
+        if selected_job is not None:
+            elapsed_time = next_event_time - current_time
+            selected_job["remaining_time"] -= elapsed_time
+
+            # if the current job is done, remove it from select job list
+            if selected_job["remaining_time"] == 0:
+                ready_jobs.remove(selected_job)
+
+        # set the current time to the next event time for the next iteration of the loop
+        current_time = next_event_time
+
+    # selected_job = select_next_job(ready_jobs)
+    # print("Selected Job:", selected_job)
 
     # for jobs in ready_jobs:
     #     print(jobs)

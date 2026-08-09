@@ -122,7 +122,7 @@ def calc_next_event_time(next_release_time, current_time, selected_job, hyperper
 def detect_deadline_miss(ready_jobs, current_time):
     # for each ready job, check if the deadline was missed or not. Return the job if the deadline was missed
     for job in ready_jobs:
-        if (job["abs_deadline"] >= current_time and job["remaining_time"] > 0):
+        if (job["abs_deadline"] <= current_time and job["remaining_time"] > 0):
             return job
 
     return None

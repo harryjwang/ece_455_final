@@ -180,7 +180,7 @@ def main():
             feasible = False
 
             print(f"Missed deadline at {current_time/1000:.3f}")
-            print(f"The job(s) that missed its deadline was {missed_job["task_num"]}")
+            print(f"The job that missed its deadline was {missed_job['task_num']}")
 
             break
 
@@ -193,7 +193,7 @@ def main():
             preemption_count[running_job["task_num"]] += 1
 
             print(f"Preemption occured at {current_time/1000:.3f}")
-            print(f"T{running_job["task_num"]} was preempted by T{selected_job["task_num"]}")
+            print(f"T{running_job['task_num']} was preempted by T{selected_job['task_num']}")
 
         running_job = selected_job
 

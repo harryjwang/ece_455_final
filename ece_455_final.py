@@ -127,6 +127,8 @@ def detect_deadline_miss(ready_jobs, current_time):
 
     return None
 
+# TODO: implement state checking function here...
+
 
 def main():
     # restrict command line args to only have exactly 2 args
@@ -146,6 +148,7 @@ def main():
     assign_priorities(parsed_tasks)
     hyperperiod = calculate_hyperperiod(parsed_tasks)
 
+    # TODO: shouldn't need this after the storing state changes (no need for additional, arbitrary stop time if we're testing repeated states based on stored and seen states)
     max_deadline = max(task["deadline"] for task in parsed_tasks)
     simulation_end = hyperperiod + max_deadline
 
@@ -157,19 +160,11 @@ def main():
     preemption_count = [0] * len(parsed_tasks)
     running_job = None
 
-    # as long as the current time doesn't exceed the hyperperiod, release jobs based on the next release time
-    # of the tasks and the current time of the simulation
-    # while current_time < hyperperiod:
-    #     release_jobs(parsed_tasks, next_release_time, current_time, ready_jobs)
-    #     current_time += min(next_release_time)
+    # TODO: Need a variable here to store all the states that we've already seen
 
     # change loop to actually execute jobs
+    # TODO: need to change loop condition to just constantly run since we'll break out of the loop if repeated states are detected
     while current_time < simulation_end:
-
-        # Workload 6 issue:
-        #           - when deadlines are after the hyperperiod, we can decide feasibility since after T=16 deadlines could cause non-feasibilities
-        #           - things to do to fix this:
-        #                       - hyperperiod should only be period in which we count preemptions NOT necessarily determine when top stop checking feasibility
 
         # constantly release jobs
         release_jobs(
@@ -189,6 +184,8 @@ def main():
 
             break
 
+        # TODO: need to implement some check for repeated states at hyperperiod boundaries
+
         # choose the next job we need to execute based on the ready jobs and their priorities
         selected_job = select_next_job(ready_jobs)
 
@@ -201,6 +198,7 @@ def main():
         running_job = selected_job
 
         # calculate the time of the next event
+        # TODO: need t oupdate this after state storing func. + related changes are made (same with the function itself)
         next_event_time = calc_next_event_time(
             next_release_time,
             current_time,
@@ -248,25 +246,6 @@ def main():
         if missed_job is None:
             print("Post loop check passed as expected")
 
-    # selected_job = select_next_job(ready_jobs)
-    # print("Selected Job:", selected_job)
-
-    # for jobs in ready_jobs:
-    #     print(jobs)
-
-    # initialize jobs to indicate where they're release and where their deadline is
-    # initial_jobs = []
-
-    # for task in parsed_tasks:
-    #     initial_jobs.append(create_job(task, 0))
-
-    # print all initial jobs that get released as well as the calculated hyperperiod
-    # print("Initial Jobs: ")
-    # for job in initial_jobs:
-    #         print(job)
-    # print("Parsed tasks:")
-    # for task in parsed_tasks:
-    #     print(task)
     print("Hyperperiod:", hyperperiod)
     print("Feasible?: ", feasible)
     print("Num. Preemptions: ", preemption_count)

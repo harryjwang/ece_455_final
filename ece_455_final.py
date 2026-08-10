@@ -105,12 +105,12 @@ def select_next_job(ready_jobs):
 def calc_next_event_time(next_release_time, current_time, selected_job, ready_jobs):
     earliest_release_time = min(next_release_time)    
 
-    # set the earliest deadline as the smallest absolute deadline out of all of the ready jobs
-    earliest_deadline = min((job["abs_deadline"] for job in ready_jobs))
-
     # if no selected jobs, return the release time that is the soonest
     if selected_job is None:
         return earliest_release_time
+
+    # set the earliest deadline as the smallest absolute deadline out of all of the ready jobs
+    earliest_deadline = min((job["abs_deadline"] for job in ready_jobs))
 
     # updated completion time to the current time with the reamining time of the selected job added to it
     completion_time = current_time + selected_job["remaining_time"]

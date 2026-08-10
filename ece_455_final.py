@@ -164,7 +164,7 @@ def main():
     #     current_time += min(next_release_time)
 
     # change loop to actually execute jobs
-    while current_time < hyperperiod:
+    while current_time < simulation_end:
 
         # Workload 6 issue:
         #           - when deadlines are after the hyperperiod, we can decide feasibility since after T=16 deadlines could cause non-feasibilities

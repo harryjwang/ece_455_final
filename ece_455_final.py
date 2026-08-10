@@ -163,6 +163,11 @@ def main():
     # change loop to actually execute jobs
     while current_time < hyperperiod:
 
+        # Workload 6 issue:
+        #           - when deadlines are after the hyperperiod, we can decide feasibility since after T=16 deadlines could cause non-feasibilities
+        #           - things to do to fix this:
+        #                       - hyperperiod should only be period in which we count preemptions NOT necessarily determine when top stop checking feasibility
+
         # constantly release jobs
         release_jobs(
             parsed_tasks,

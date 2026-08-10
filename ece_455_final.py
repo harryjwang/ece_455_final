@@ -39,7 +39,6 @@ def calculate_hyperperiod(tasks):
     periods = [task["period"] for task in tasks]
     return math.lcm(*periods)
 
-
 # This function takes each line in the workload file and splits the values based on the comma separator locations and stores it into a dictionary list
 def parse_tasks(lines):
     # start with empty dict
@@ -75,7 +74,6 @@ def create_job (task, release_time):
         "abs_deadline": release_time + task["deadline"],
         "priority": task["priority"],
     }
-
 
 # function that releases jobs based on the next release time of the task and the current time of the simulation
 def release_jobs(tasks, next_release_time, current_time, ready_jobs):
@@ -118,7 +116,6 @@ def calc_next_event_time(next_release_time, current_time, selected_job, ready_jo
     # return the smallest value our of the next release time, completion time, or hyperperiod
     return min(earliest_release_time, completion_time, earliest_deadline)
 
-
 # function to detect if a deadline is ever missed (failed)
 def detect_deadline_miss(ready_jobs, current_time):
     # for each ready job, check if the deadline was missed or not. Return the job if the deadline was missed
@@ -127,7 +124,6 @@ def detect_deadline_miss(ready_jobs, current_time):
             return job
 
     return None
-
 
 # state storing funciton that, upon call, stores information about the current state
 def get_schedule_state(ready_jobs, current_time):
@@ -157,10 +153,6 @@ def main():
     assign_priorities(parsed_tasks)
     hyperperiod = calculate_hyperperiod(parsed_tasks)
 
-    # TODO: shouldn't need this after the storing state changes (no need for additional, arbitrary stop time if we're testing repeated states based on stored and seen states)
-    max_deadline = max(task["deadline"] for task in parsed_tasks)
-    simulation_end = hyperperiod + max_deadline
-
     next_release_time = [0] * len(parsed_tasks)  # initialize next release time for each task to 0
     ready_jobs = []  # initialize ready jobs list to store jobs that are ready to be executed
 
@@ -172,11 +164,7 @@ def main():
     # set of states that we check for repeated states
     seen_state = set()
 
-    # TODO: Need a variable here to store all the states that we've already seen
-
-    # change loop to actually execute jobs
-    # TODO: need to change loop condition to just constantly run since we'll break out of the loop if repeated states are detected
-    while current_time < simulation_end:
+    while True:
 
         # constantly release jobs
         release_jobs(

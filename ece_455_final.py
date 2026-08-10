@@ -127,7 +127,15 @@ def detect_deadline_miss(ready_jobs, current_time):
 
     return None
 
-# TODO: implement state checking function here...
+
+# state storing funciton that, upon call, stores information about the current state
+def get_schedule_state(ready_jobs, current_time):
+    state = []
+
+    for job in ready_jobs:
+        state.append((job["task_num"], job["remaining_time"], job["release_time"] - current_time, job["abs_deadline"] - current_time))
+
+    return tuple(sorted(state))
 
 
 def main():

@@ -13,8 +13,7 @@ def read_workload_file(filename):
         # try to open the file and read the contents within the file
         with open(filename, "r", encoding="utf-8") as workload_file:
             lines = workload_file.readlines()
-
-        # print("File loaded successfully")
+            
         return lines
 
     # if unable to open and read file the file, an error is thrown indicating this
@@ -83,11 +82,6 @@ def release_jobs(tasks, next_release_time, current_time, ready_jobs):
         if next_release_time[task_num] <= current_time:
             release_time = next_release_time[task_num]
             ready_jobs.append(create_job(task, release_time))
-
-            # Indicates when the tasks are released based on current simulation time and the next release time of the task
-            # print(f"Time {release_time / 1000:.3f}: "
-            #         f"T{task_num} released")
-            
             next_release_time[task_num] += task["period"]
 
 # select the next job to execute according to priority
@@ -178,10 +172,6 @@ def main():
 
         if missed_job is not None:
             feasible = False
-
-            # print(f"Missed deadline at {current_time/1000:.3f}")
-            # print(f"The job that missed its deadline was {missed_job['task_num']}")
-
             break
 
         # check if we get to a repeated state
@@ -201,9 +191,6 @@ def main():
         if (running_job is not None and selected_job is not None and selected_job is not running_job and current_time < hyperperiod):
             preemption_count[running_job["task_num"]] += 1
 
-            # print(f"Preemption occured at {current_time/1000:.3f}")
-            # print(f"T{running_job['task_num']} was preempted by T{selected_job['task_num']}")
-
         running_job = selected_job
 
         # calculate the time of the next event
@@ -213,21 +200,6 @@ def main():
             selected_job,
             ready_jobs
         )
-
-        # Shows what times the tasks are running, when they were release, when they were completed, and when the CPU is idle
-        # if selected_job is None:
-        #     running_job = None
-
-        #     print(
-        #         f"Time {current_time / 1000:.3f} to "
-        #         f"{next_event_time / 1000:.3f}: CPU idle"
-        #     )
-        # else:
-        #     print(
-        #         f"Time {current_time / 1000:.3f} to "
-        #         f"{next_event_time / 1000:.3f}: "
-        #         f"Running T{selected_job['task_num']}"
-        #     )
 
         # if a job is selected, then calcaulted the elapsed time and subtract it from the selected job's remaining time
         if selected_job is not None:
@@ -241,22 +213,6 @@ def main():
 
         # set the current time to the next event time for the next iteration of the loop
         current_time = next_event_time
-
-
-    # if feasible:
-    #     missed_job = detect_deadline_miss(ready_jobs, current_time)
-
-        # if missed_job is not None:
-        #     feasible = None
-        #     print("Post loop check failed")
-
-        # if missed_job is None:
-        #     print("Post loop check passed as expected")
-
-    # print("Hyperperiod:", hyperperiod)
-    # print("Feasible?: ", feasible)
-    # print("Num. Preemptions: ", preemption_count)
-
 
 if __name__ == "__main__":
     main()

@@ -205,7 +205,7 @@ def main():
             next_release_time,
             current_time,
             selected_job,
-            hyperperiod,
+            simulation_end,
             ready_jobs
         )
 

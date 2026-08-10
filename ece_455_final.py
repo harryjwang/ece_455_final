@@ -146,6 +146,9 @@ def main():
     assign_priorities(parsed_tasks)
     hyperperiod = calculate_hyperperiod(parsed_tasks)
 
+    max_deadline = max(task["deadline"] for task in parsed_tasks)
+    simulation_end = hyperperiod + max_deadline
+
     next_release_time = [0] * len(parsed_tasks)  # initialize next release time for each task to 0
     ready_jobs = []  # initialize ready jobs list to store jobs that are ready to be executed
 

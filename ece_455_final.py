@@ -151,6 +151,8 @@ def main():
 
     current_time = 0
     feasible = True
+    preemption_count = [0] * len(parsed_tasks)
+    running_job = None
 
     # as long as the current time doesn't exceed the hyperperiod, release jobs based on the next release time
     # of the tasks and the current time of the simulation
@@ -182,6 +184,14 @@ def main():
         # choose the next job we need to execute based on the ready jobs and their priorities
         selected_job = select_next_job(ready_jobs)
 
+        if (running_job is not None and selected_job is not None and selected_job is not running_job):
+            preemption_count[running_job["task_num"]] += 1
+
+            print(f"Preemption occured at {current_time/1000:.3f}")
+            print(f"T{running_job["task_num"]} was preempted by T{selected_job["task_num"]}")
+
+        running_job = selected_job
+
         # calculate the time of the next event
         next_event_time = calc_next_event_time(
             next_release_time,
@@ -193,6 +203,8 @@ def main():
 
         # Shows what times the tasks are running, when they were release, when they were completed, and when the CPU is idle
         if selected_job is None:
+            running_job = None
+
             print(
                 f"Time {current_time / 1000:.3f} to "
                 f"{next_event_time / 1000:.3f}: CPU idle"
@@ -212,6 +224,7 @@ def main():
             # if the current job is done, remove it from select job list
             if selected_job["remaining_time"] == 0:
                 ready_jobs.remove(selected_job)
+                running_job = None
 
         # set the current time to the next event time for the next iteration of the loop
         current_time = next_event_time
@@ -248,6 +261,7 @@ def main():
     #     print(task)
     print("Hyperperiod:", hyperperiod)
     print("Feasible?: ", feasible)
+    print("Num. Preemptions: ", preemption_count)
 
 if __name__ == "__main__":
     main()

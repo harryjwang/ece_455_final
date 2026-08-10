@@ -189,7 +189,7 @@ def main():
         # choose the next job we need to execute based on the ready jobs and their priorities
         selected_job = select_next_job(ready_jobs)
 
-        if (running_job is not None and selected_job is not None and selected_job is not running_job):
+        if (running_job is not None and selected_job is not None and selected_job is not running_job and current_time < hyperperiod):
             preemption_count[running_job["task_num"]] += 1
 
             print(f"Preemption occured at {current_time/1000:.3f}")

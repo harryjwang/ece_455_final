@@ -168,6 +168,9 @@ def main():
     preemption_count = [0] * len(parsed_tasks)
     running_job = None
 
+    # set of states that we check for repeated states
+    seen_state = set()
+
     # TODO: Need a variable here to store all the states that we've already seen
 
     # change loop to actually execute jobs
@@ -192,7 +195,16 @@ def main():
 
             break
 
-        # TODO: need to implement some check for repeated states at hyperperiod boundaries
+        # check if we get to a repeated state
+        if current_time % hyperperiod == 0:
+            current_state = get_schedule_state(ready_jobs, current_time)
+
+            if current_state in seen_state:
+                print(f"Scheduled state repeated at {current_time / 1000:.3f}")
+                break
+
+            seen_state.add(current_state)
+
 
         # choose the next job we need to execute based on the ready jobs and their priorities
         selected_job = select_next_job(ready_jobs)

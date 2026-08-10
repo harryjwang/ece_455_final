@@ -102,20 +102,21 @@ def select_next_job(ready_jobs):
     return min(ready_jobs, key=lambda job: (job["priority"], job["release_time"]))
 
 # calculates the time of the next event base on release time of next job, current time, and selected job's remaining time
-def calc_next_event_time(next_release_time, current_time, selected_job, hyperperiod, ready_jobs):
-    earliest_release_time = min(next_release_time)
+def calc_next_event_time(next_release_time, current_time, selected_job, ready_jobs):
+    earliest_release_time = min(next_release_time)    
 
-    earliest_deadline = min((job["abs_deadline"] for job in ready_jobs), default = hyperperiod)
+    # set the earliest deadline as the smallest absolute deadline out of all of the ready jobs
+    earliest_deadline = min((job["abs_deadline"] for job in ready_jobs))
 
-    # if no selected jobs, return the smallest next release time or hyperperiod
+    # if no selected jobs, return the release time that is the soonest
     if selected_job is None:
-        return min(earliest_release_time, hyperperiod, earliest_deadline)
+        return earliest_release_time
 
     # updated completion time to the current time with the reamining time of the selected job added to it
     completion_time = current_time + selected_job["remaining_time"]
 
     # return the smallest value our of the next release time, completion time, or hyperperiod
-    return min(earliest_release_time, completion_time, hyperperiod, earliest_deadline)
+    return min(earliest_release_time, completion_time, earliest_deadline)
 
 
 # function to detect if a deadline is ever missed (failed)
@@ -223,7 +224,6 @@ def main():
             next_release_time,
             current_time,
             selected_job,
-            simulation_end,
             ready_jobs
         )
 

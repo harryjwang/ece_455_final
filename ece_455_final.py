@@ -82,7 +82,9 @@ def release_jobs(tasks, release_heap, current_time, ready_jobs):
         release_time, task_num = heapq.heappop(release_heap)
 
         task = tasks[task_num]
-        ready_jobs.append(create_job(task, release_time))
+        job = create_job(task, release_time)
+
+        heapq.heappush(ready_jobs, (job["priority"], job["release_time"], job["task_num"], job))
 
         next_release_time = release_time + task["period"]
         heapq.heappush(release_heap, (next_release_time, task_num))
@@ -92,6 +94,8 @@ def select_next_job(ready_jobs):
     # empty queue of ready jobs
     if not ready_jobs:
         return None
+
+    return ready_jobs[0][3]
 
     # return the job in the ready queue with the higheset priority (smallest value)
     return min(ready_jobs, key=lambda job: (job["priority"], job["release_time"]))
@@ -105,7 +109,7 @@ def calc_next_event_time(release_heap, current_time, selected_job, ready_jobs):
         return earliest_release_time
 
     # set the earliest deadline as the smallest absolute deadline out of all of the ready jobs
-    earliest_deadline = min((job["abs_deadline"] for job in ready_jobs))
+    earliest_deadline = min(job_entry[3]["abs_deadline"] for job_entry in ready_jobs)
 
     # updated completion time to the current time with the reamining time of the selected job added to it
     completion_time = current_time + selected_job["remaining_time"]
@@ -116,7 +120,8 @@ def calc_next_event_time(release_heap, current_time, selected_job, ready_jobs):
 # function to detect if a deadline is ever missed (failed)
 def detect_deadline_miss(ready_jobs, current_time):
     # for each ready job, check if the deadline was missed or not. Return the job if the deadline was missed
-    for job in ready_jobs:
+    for job_entry in ready_jobs:
+        job = job_entry[3]
         if (job["abs_deadline"] <= current_time and job["remaining_time"] > 0):
             return job
 
@@ -126,7 +131,8 @@ def detect_deadline_miss(ready_jobs, current_time):
 def get_schedule_state(ready_jobs, current_time):
     state = []
 
-    for job in ready_jobs:
+    for job_entry in ready_jobs:
+        job = job_entry[3]
         state.append((job["task_num"], job["remaining_time"], job["release_time"] - current_time, job["abs_deadline"] - current_time))
 
     return tuple(sorted(state))
@@ -214,7 +220,7 @@ def main():
 
             # if the current job is done, remove it from select job list
             if selected_job["remaining_time"] == 0:
-                ready_jobs.remove(selected_job)
+                heapq.heappop(ready_jobs)
                 running_job = None
 
         # set the current time to the next event time for the next iteration of the loop

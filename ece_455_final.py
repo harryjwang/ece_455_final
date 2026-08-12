@@ -77,7 +77,7 @@ def create_job (task, release_time):
     }
 
 # function that releases jobs based on the next release time of the task and the current time of the simulation
-def release_jobs(tasks, release_heap, current_time, ready_jobs):
+def release_jobs(tasks, release_heap, current_time, ready_jobs, deadline_heap):
     while release_heap and release_heap[0][0] <= current_time:
         release_time, task_num = heapq.heappop(release_heap)
 
@@ -85,6 +85,7 @@ def release_jobs(tasks, release_heap, current_time, ready_jobs):
         job = create_job(task, release_time)
 
         heapq.heappush(ready_jobs, (job["priority"], job["release_time"], job["task_num"], job))
+        heapq.heappush(deadline_heap, (job["abs_deadline"], job["task_num"], job["release_time"], job))
 
         next_release_time = release_time + task["period"]
         heapq.heappush(release_heap, (next_release_time, task_num))
@@ -101,15 +102,15 @@ def select_next_job(ready_jobs):
     return min(ready_jobs, key=lambda job: (job["priority"], job["release_time"]))
 
 # calculates the time of the next event base on release time of next job, current time, and selected job's remaining time
-def calc_next_event_time(release_heap, current_time, selected_job, ready_jobs):
-    earliest_release_time = min(next_release_time)    
+def calc_next_event_time(release_heap, current_time, selected_job, deadline_heap):
+    earliest_release_time = release_heap[0][0]
 
     # if no selected jobs, return the release time that is the soonest
     if selected_job is None:
         return earliest_release_time
 
-    # set the earliest deadline as the smallest absolute deadline out of all of the ready jobs
-    earliest_deadline = min(job_entry[3]["abs_deadline"] for job_entry in ready_jobs)
+    remove_compeleted_deadlines(deadline_heap)
+    earliest_deadline = deadline_heap[0][0]
 
     # updated completion time to the current time with the reamining time of the selected job added to it
     completion_time = current_time + selected_job["remaining_time"]
@@ -118,12 +119,11 @@ def calc_next_event_time(release_heap, current_time, selected_job, ready_jobs):
     return min(earliest_release_time, completion_time, earliest_deadline)
 
 # function to detect if a deadline is ever missed (failed)
-def detect_deadline_miss(ready_jobs, current_time):
-    # for each ready job, check if the deadline was missed or not. Return the job if the deadline was missed
-    for job_entry in ready_jobs:
-        job = job_entry[3]
-        if (job["abs_deadline"] <= current_time and job["remaining_time"] > 0):
-            return job
+def detect_deadline_miss(deadline_heap, current_time):
+    remove_compeleted_deadlines(deadline_heap)
+
+    if deadline_heap and deadline_heap[0][0] <= current_time:
+        return deadline_heap[0][3]
 
     return None
 
@@ -136,6 +136,10 @@ def get_schedule_state(ready_jobs, current_time):
         state.append((job["task_num"], job["remaining_time"], job["release_time"] - current_time, job["abs_deadline"] - current_time))
 
     return tuple(sorted(state))
+
+def remove_compeleted_deadlines(deadline_heap):
+    while deadline_heap and deadline_heap[0][3]["remaining_time"] == 0:
+        heapq.heappop(deadline_heap)
 
 
 def main():
@@ -161,6 +165,7 @@ def main():
         heapq.heappush(release_heap, (0, task["task_num"]))
 
     ready_jobs = []  # initialize ready jobs list to store jobs that are ready to be executed
+    deadline_heap = []
 
     current_time = 0
     feasible = True
@@ -177,10 +182,11 @@ def main():
             parsed_tasks,
             release_heap,
             current_time,
-            ready_jobs
+            ready_jobs,
+            deadline_heap
         )
 
-        missed_job = detect_deadline_miss(ready_jobs, current_time)
+        missed_job = detect_deadline_miss(deadline_heap, current_time)
 
         if missed_job is not None:
             feasible = False
@@ -210,7 +216,7 @@ def main():
             release_heap,
             current_time,
             selected_job,
-            ready_jobs
+            deadline_heap
         )
 
         # if a job is selected, then calcaulted the elapsed time and subtract it from the selected job's remaining time

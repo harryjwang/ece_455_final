@@ -1,6 +1,7 @@
 import sys
 import math
 from decimal import Decimal
+import heapq
 
 # Function to convert float values to int values with 0.001 accuracy -> ie. 1 -> 1000, 1.001 -> 1001, 1.002 -> 1002, etc.
 def convert_to_time_units(value): 

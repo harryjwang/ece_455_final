@@ -77,14 +77,15 @@ def create_job (task, release_time):
     }
 
 # function that releases jobs based on the next release time of the task and the current time of the simulation
-def release_jobs(tasks, next_release_time, current_time, ready_jobs):
-    for task in tasks:
-        task_num = task["task_num"]
+def release_jobs(tasks, release_heap, current_time, ready_jobs):
+    while release_heap and release_heap[0][0] <= current_time:
+        release_time, task_num = heapq.heappop(release_heap)
 
-        if next_release_time[task_num] <= current_time:
-            release_time = next_release_time[task_num]
-            ready_jobs.append(create_job(task, release_time))
-            next_release_time[task_num] += task["period"]
+        task = tasks[task_num]
+        ready_jobs.append(create_job(task, release_time))
+
+        next_release_time = release_time + task["period"]
+        heapq.heappush(release_heap, (next_release_time, task_num))
 
 # select the next job to execute according to priority
 def select_next_job(ready_jobs):
@@ -96,7 +97,7 @@ def select_next_job(ready_jobs):
     return min(ready_jobs, key=lambda job: (job["priority"], job["release_time"]))
 
 # calculates the time of the next event base on release time of next job, current time, and selected job's remaining time
-def calc_next_event_time(next_release_time, current_time, selected_job, ready_jobs):
+def calc_next_event_time(release_heap, current_time, selected_job, ready_jobs):
     earliest_release_time = min(next_release_time)    
 
     # if no selected jobs, return the release time that is the soonest
@@ -149,7 +150,10 @@ def main():
     assign_priorities(parsed_tasks)
     hyperperiod = calculate_hyperperiod(parsed_tasks)
 
-    next_release_time = [0] * len(parsed_tasks)  # initialize next release time for each task to 0
+    release_heap = []               # create a heap for released jobs and initialize them to (0, task_num)
+    for task in parsed_tasks:
+        heapq.heappush(release_heap, (0, task["task_num"]))
+
     ready_jobs = []  # initialize ready jobs list to store jobs that are ready to be executed
 
     current_time = 0
@@ -165,7 +169,7 @@ def main():
         # constantly release jobs
         release_jobs(
             parsed_tasks,
-            next_release_time,
+            release_heap,
             current_time,
             ready_jobs
         )
@@ -197,7 +201,7 @@ def main():
 
         # calculate the time of the next event
         next_event_time = calc_next_event_time(
-            next_release_time,
+            release_heap,
             current_time,
             selected_job,
             ready_jobs

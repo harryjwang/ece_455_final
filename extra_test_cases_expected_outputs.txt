@@ -1,0 +1,59 @@
+Workload 7:
+1
+0
+
+Workload 8:
+1
+0
+
+Workload 9:
+0
+
+
+Workload 10:
+1
+0,1
+
+Workload 11:
+1
+0,0
+
+Workload 12:
+1
+0,0
+
+Workload 13:
+1
+0,2
+
+Workload 14:
+1
+0,0,0
+
+Workload 15:
+1
+0,0
+
+Workload 16:
+0
+
+
+Workload 17:
+0
+
+
+Workload 18:
+1
+0,2
+
+Workload 19:
+1
+0,0
+
+Workload 20:
+1
+0,0,0
+
+Workload 21:
+1
+0

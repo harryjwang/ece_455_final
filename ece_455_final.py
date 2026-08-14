@@ -45,8 +45,14 @@ def parse_tasks(lines):
 
     # for each line (starting from 0), go through each line for task_num and line values
     for task_num, line_vals in enumerate(lines, start=0):
+        
         # strip line values of the whitespace(s)
         line_vals = line_vals.strip()
+
+        if not line_vals:
+            continue
+
+        task_num = len(tasks)
 
         # split the line vals into execution time, period, and deadline based on the comma separator locations
         exec_time, period, deadline = line_vals.split(",")

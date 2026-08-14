@@ -3,8 +3,6 @@ import math
 from decimal import Decimal
 import heapq
 
-# import time
-
 # Function to convert float values to int values with 0.001 accuracy -> ie. 1 -> 1000, 1.001 -> 1001, 1.002 -> 1002, etc.
 def convert_to_time_units(value): 
     # convert value (0.001 accuracy) to int values so that we don't experience any rounding related issues with float values
@@ -17,12 +15,10 @@ def read_workload_file(filename):
         with open(filename, "r", encoding="utf-8") as workload_file:
             lines = workload_file.readlines()
 
-        # print("File loaded successfully")
         return lines
 
     # if unable to open and read file the file, an error is thrown indicating this
     except FileNotFoundError:
-        print("File could not be found")
         return None
 
 
@@ -100,8 +96,6 @@ def select_next_job(ready_jobs):
 
     return ready_jobs[0][3]
 
-    # return the job in the ready queue with the higheset priority (smallest value)
-    return min(ready_jobs, key=lambda job: (job["priority"], job["release_time"]))
 
 # calculates the time of the next event base on release time of next job, current time, and selected job's remaining time
 def calc_next_event_time(release_heap, current_time, selected_job, deadline_heap):
@@ -176,8 +170,6 @@ def main():
 
     # set of states that we check for repeated states
     seen_state = set()
-
-    # sim_start_time = time.perf_counter()
     
     while True:
 
@@ -201,7 +193,6 @@ def main():
             current_state = get_schedule_state(ready_jobs, current_time)
 
             if current_state in seen_state:
-                # print(f"Scheduled state repeated at {current_time / 1000:.3f}")
                 break
 
             seen_state.add(current_state)
@@ -236,17 +227,12 @@ def main():
         # set the current time to the next event time for the next iteration of the loop
         current_time = next_event_time
 
-    # sim_stop_time = time.perf_counter()
-
     if feasible:
         print(1)
         print(",".join(str(individual_counts) for individual_counts in preemption_count))
     if not feasible:
         print(0)
         print()
-
-    # sim_time_elapsed = sim_stop_time - sim_start_time
-    # print(f"simulation run time: {sim_time_elapsed:.6f}s")
 
 if __name__ == "__main__":
     main()

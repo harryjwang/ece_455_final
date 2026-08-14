@@ -44,7 +44,7 @@ def parse_tasks(lines):
     tasks = []
 
     # for each line (starting from 0), go through each line for task_num and line values
-    for task_num, line_vals in lines:
+    for line_vals in lines:
         
         # strip line values of the whitespace(s)
         line_vals = line_vals.strip()
